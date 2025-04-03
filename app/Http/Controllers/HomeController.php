@@ -32,7 +32,7 @@ class HomeController extends Controller
 
         if ($user->is_activated == 1) {
         
-            if ($user->role == 'admin') {
+            if ($user->role == '1') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role == '3') {
                 return redirect()->route('driver.dashboard');
@@ -67,9 +67,9 @@ class HomeController extends Controller
             auth()->login($user);
             session()->regenerate();
 
-            if ($user->role == 'admin') {
+            if ($user->role == '1') {
                 return redirect()->route('admin.dashboard');
-            } elseif ($user->role == 'driver') {
+            } elseif ($user->role == '3') {
                 return redirect()->route('driver.dashboard');
             } else {
                 return redirect()->route('customer.dashboard'); // Default for customers

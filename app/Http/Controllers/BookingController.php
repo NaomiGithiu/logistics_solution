@@ -71,8 +71,13 @@ class BookingController extends Controller
 
    public function show($id)
     {
-        $booking = Booking::with(['trip.driver'])->findOrFail($id);
-        return view('customer.details', compact('booking'));
+        //$booking = Booking::with(['trip.driver'])->findOrFail($id);
+        $customerId = auth()->id();
+        $details = Booking::where('customer_id', $customerId)
+                        ->where('status', 'pending')
+                        ->get();
+        return view('customer.details', compact('details'));
+        //return view('customer.details', compact('booking'));
     }
 
 
@@ -100,5 +105,27 @@ class BookingController extends Controller
 
         return view('customer.my_booking', compact('bookings'));
     }
+
+
+    public function report()
+    {
+        $customerId = auth()->id(); // Get the logged-in customer ID
+
+        $totalTrips = Booking::where('customer_id', $customerId)->count();
+
+        $completedbookings = Booking::where('customer_id', $customerId)
+                            ->where('status', 'completed')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+                    
+        $totalFare = $completedbookings->sum('estimated_fare');
+
+        $canceledbookings = Booking::where('customer_id', $customerId)
+                            ->where('status', 'canceled')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+        return view('customer.report', compact('completedbookings', 'canceledbookings', 'totalTrips', 'totalFare'));
+    }
+
 
 }

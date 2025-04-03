@@ -12,6 +12,8 @@
                         <th>Pickup</th>
                         <th>Dropoff</th>
                         <th>Vehicle</th>
+                        <th>Weight</th>
+                        <th>Price</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -22,6 +24,8 @@
                         <td>{{ $booking->pickup_location }}</td>
                         <td>{{ $booking->dropoff_location }}</td>
                         <td class="text-capitalize">{{ $booking->vehicle_type }}</td>
+                        <td>{{ $booking->weight }}</td>
+                        <td>{{ $booking->estimated_fare }}</td>
                         <td>
                             @if($booking->status == 'pending')
                                 <span class="badge bg-warning color-light">Pending</span>

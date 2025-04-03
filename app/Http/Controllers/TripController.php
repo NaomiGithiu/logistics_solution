@@ -91,6 +91,25 @@ class TripController extends Controller
         return view('admin.assignedTrips', compact('bookings'));  // Return the driver's dashboard
     }
 
+    public function report()
+    {
+        $completedBookings = Booking::where('status', 'completed')
+                                    ->get();
+           
+        $canceledBookings = Booking::where('status', 'canceled')
+        ->get();
+
+        $totalEarnings = $completedBookings->sum('estimated_fare');
+
+        $driverEarnings = Booking::where('status', 'completed')
+                                ->select('driver_id', \DB::raw('SUM(estimated_fare) as total_earnings'))
+                                ->groupBy('driver_id')
+                                ->with('driver') 
+                                ->get();
+
+        return view('admin.report', compact('completedBookings', 'totalEarnings', 'canceledBookings', 'driverEarnings'));
+    }
+
     public function driverDashboard()
     {
         $driverId = auth()->id();
@@ -99,13 +118,25 @@ class TripController extends Controller
         $completedTrips = Booking::where('driver_id', $driverId)
                                 ->where('status', 'completed')
                                 ->count();
+        
+        $assignedTrips = Booking::where('driver_id', $driverId)
+                                ->where('status', 'confirmed')
+                                ->count();
 
         // Count canceled trips for this driver
         $canceledTrips = Booking::where('driver_id', $driverId)
                                 ->where('status', 'canceled')
                                 ->count();
+        // Get all completed trips for this driver
+        $completedBookings = Booking::where('driver_id', $driverId)
+                                    ->where('status', 'completed')
+                                    ->get();
 
-        return view('drivers.dashboard', compact('completedTrips', 'canceledTrips'));
+        // Calculate total earnings
+        $totalEarnings = $completedBookings->sum('estimated_fare');
+
+
+        return view('drivers.dashboard', compact('completedTrips', 'assignedTrips', 'canceledTrips', 'totalEarnings', 'completedBookings'));
     }
 
 
@@ -156,6 +187,7 @@ class TripController extends Controller
 
         return view('drivers.earnings', compact('completedBookings', 'totalEarnings'));
     }
+
 
 }
 

@@ -65,7 +65,10 @@ class DriverController extends Controller
 
     public function destroy($id)
     {
-        User::destroy($id);
-        return redirect('users')->with('flash_message', 'user deleted');
+        $user = User::findOrFail($id);
+        $user->delete(); // Soft delete the user
+
+        return redirect('users')->with('flash_message', 'User soft deleted');
     }
+
 }

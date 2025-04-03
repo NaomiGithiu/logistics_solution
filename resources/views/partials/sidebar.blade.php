@@ -42,7 +42,7 @@
         </div>
     </li>
 
-@if (auth()->check() && auth()->user()->role == 'admin')
+@if (auth()->check() && auth()->user()->role == '1')
     <a class="dropdown-item text-light fw-bold" href="{{ url('users') }}">
         Manage Users
     </a>

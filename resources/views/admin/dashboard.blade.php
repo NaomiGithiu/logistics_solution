@@ -26,7 +26,7 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Welcome, {{ Auth::user()->name }}!</h1>
-                        <a href="{{route('earnings')}}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                        <a href="{{route('report')}}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
                                 class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
                     </div>
                     <div class="row">
@@ -58,7 +58,7 @@
                         </div>
                     </div>
 
-                    <div class="container mt-4">
+                    <div class="container_fluid mt-4">
                         <div class="card shadow">
                             <div class="card-header bg-primary text-white">
                                 <h5 class="mb-0">Driver Earnings Report</h5>
@@ -98,7 +98,7 @@
             <!-- End of Main Content -->
 
             <!-- Footer -->
-            {{-- @include('partials.footer') --}}
+            @include('partials.footer')
             <!-- End of Footer -->
 
         </div>

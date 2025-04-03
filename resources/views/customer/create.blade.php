@@ -39,7 +39,7 @@
             <!-- Vehicle Type -->
             <div class="mb-3">
                 <label for="vehicle_type" class="form-label">Vehicle Type</label>
-                <select id="vehicle_type" name="vehicle_type" class="form-select">
+                <select id="vehicle_type" name="vehicle_type" class="form-select form-control">
                     <option value="bike">Bike</option>
                     <option value="van">Van</option>
                     <option value="truck">Truck</option>

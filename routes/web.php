@@ -40,7 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.details');
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
-
+    Route::get('/report', [BookingController::class, 'report'])->name('customer-report');
 });
 
 Route::resource('/users', DriverController::class);
@@ -50,6 +50,7 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('admin/pending', [TripController::class, 'pendingTrips'])->name('admin.pending');
     Route::put('update/{id}', [TripController::class, 'updateBooking'])->name('admin.updateBooking');
     Route::get('admin/assignedTrips', [TripController::class, 'assignedTrips'])->name('assignedTrips');
+    Route::get('/admin/report', [TripController::class, 'report'])->name('report');
 });
 
 Route::prefix('customer')->middleware('auth')->group(function () {

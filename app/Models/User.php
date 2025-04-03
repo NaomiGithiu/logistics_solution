@@ -8,16 +8,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class User extends Authenticatable
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles, SoftDeletes;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $dates = ['deleted_at'];
+
     protected $fillable = [
         'name',
         'phone_number',
@@ -51,7 +50,7 @@ class User extends Authenticatable
     }
     public function bookings()
     {
-        return $this->hasMany(Booking::class, 'customer_id'); // Change 'customer_id' to match your database
+        return $this->hasMany(Booking::class, 'customer_id'); 
     }
     public function assignedTrips()
     {

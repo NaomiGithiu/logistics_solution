@@ -62,7 +62,6 @@ class TripController extends Controller
             'weight' => $weight,
             'driver_id' => $request->input('driver_id'),
             'estimated_fare' => $estimatedFare,
-            'status' => 'confirmed',  // Change status to 'confirmed'
         ]);
 
         return redirect()->route('admin.pending')->with('success', 'Booking updated successfully!');
@@ -139,33 +138,88 @@ class TripController extends Controller
         return view('drivers.dashboard', compact('completedTrips', 'assignedTrips', 'canceledTrips', 'totalEarnings', 'completedBookings'));
     }
 
-
-    // View accepted trips for the driver
     public function acceptedTrips()
     {
-        $driverId = auth()->id();  // Get logged-in driver ID
+        $driverId = auth()->id();  
         $bookings = Booking::where('driver_id', $driverId)
-                            ->where('status', 'confirmed')
-                            ->get();  // Fetch confirmed bookings for the driver
+                            ->where('status', '!=', 'completed')
+                            ->get();  
 
-        return view('drivers.accepted', compact('bookings'));  // Return the driver's dashboard
+        return view('drivers.accepted', compact('bookings'));  
     }
 
-    // Driver marks trip as completed
+    public function startTrip($id)
+    {
+        $booking = Booking::findOrFail($id);
+    
+        $booking->update(['status' => 'confirmed']);
+    
+        return back()->with('success', 'Trip started successfully.');
+    }
+    
     public function completeTrip($id)
     {
         $booking = Booking::findOrFail($id);
-
-        // Mark the booking status as completed
+   
         $booking->update(['status' => 'completed']);
-
+    
         return back()->with('success', 'Trip marked as completed.');
     }
+    
+    public function cancelTrip(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+    
+        // $request->validate([
+        //     'cancel_reason' => 'required|string|min:5',
+        // ]);
+
+        $booking->update([
+            'status' => 'canceled',
+            'canceled_by' => 'driver',
+            'cancel_reason' => $request->cancel_reason,
+        ]);
+        
+        $booking->save();
+
+        dd($booking->canceled_by);
+    
+        return back()->with('success', 'Trip has been canceled.');
+    }
+    
+    public function canceledTrips()
+    {
+        $canceledBookings = Booking::where('status', 'canceled')
+            ->where('canceled_by', 'driver') // Fetch only driver-canceled bookings
+            ->get();
+
+        $drivers = User::where('role', '3')->get(); // Fetch all drivers
+
+        return view('admin.canceledTrips', compact('canceledBookings', 'drivers'));
+    }
+    public function reassignDriver(Request $request, $id)
+    {
+        $request->validate([
+            'driver_id' => 'required|exists:users,id',
+        ]);
+
+        $booking = Booking::findOrFail($id);
+
+        $booking->update([
+            'driver_id' => $request->input('driver_id'),
+            'status' => 'confirmed',
+            'canceled_by' => null, 
+            'cancel_reason' => null, 
+        ]);
+
+        return back()->with('success', 'Driver reassigned successfully!');
+    }
+
+
     public function completedTrips()
     {
         $driverId = auth()->id();
 
-        // Fetch all completed trips for this driver
         $completedBookings = Booking::where('driver_id', $driverId)
                                     ->where('status', 'completed')
                                     ->get();
@@ -177,12 +231,10 @@ class TripController extends Controller
     {
         $driverId = auth()->id();
 
-        // Get all completed trips for this driver
         $completedBookings = Booking::where('driver_id', $driverId)
                                     ->where('status', 'completed')
                                     ->get();
 
-        // Calculate total earnings
         $totalEarnings = $completedBookings->sum('estimated_fare');
 
         return view('drivers.earnings', compact('completedBookings', 'totalEarnings'));

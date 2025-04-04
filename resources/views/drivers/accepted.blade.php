@@ -24,23 +24,33 @@
                         <td>{{ $booking->dropoff_location }}</td>
                         <td class="text-capitalize">{{ $booking->vehicle_type }}</td>
                         <td>{{ $booking->weight }}</td>
-                        <td>{{ number_format($booking->estimated_fare, 2) }}</td:>
+                        <td>{{ number_format($booking->estimated_fare, 2) }}</td>
                         <td>
                             <div class="d-flex gap-2">
-                                <!-- Complete Trip Button -->
-                                <form action="{{ route('trips.complete', $booking->id) }}" method="POST">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn btn-sm btn-success">✅ Complete</button>
-                                </form>
+                                @if($booking->status === 'pending')
+                                    <!-- Start Trip Button -->
+                                    <form action="{{ route('trips.start', $booking->id) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-primary">▶️ Start Trip</button>
+                                    </form>
+                                @elseif($booking->status === 'confirmed')
+                                    <!-- Complete Trip Button -->
+                                    <form action="{{ route('trips.complete', $booking->id) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <button type="submit" class="btn btn-sm btn-success">✅ Complete</button>
+                                    </form>
+                                @endif
 
-                                <!-- Cancel Trip Form -->
-                                {{-- <form action="{{ route('trips.cancel', $booking->id) }}" method="POST" class="d-flex gap-2">
-                                    @csrf
-                                    @method('PUT')
-                                    <input type="text" name="cancel_reason" class="form-control form-control-sm w-auto" placeholder="Reason" required>
-                                    <button type="submit" class="btn btn-sm btn-danger">❌ Cancel</button>
-                                </form> --}}
+                                @if($booking->status !== 'completed')
+                                    <!-- Cancel Trip Form -->
+                                    <form action="{{ route('trips.cancel', $booking->id) }}" method="POST" class="d-flex gap-2">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="text" name="cancel_reason" class="form-control form-control-sm w-auto" placeholder="Reason">
+                                        <button type="submit" class="btn btn-sm btn-danger">❌ Cancel</button>
+                                    </form>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -48,7 +58,7 @@
 
                     @if($bookings->isEmpty())
                         <tr>
-                            <td colspan="4" class="text-center">No accepted trips available.</td>
+                            <td colspan="6" class="text-center">No accepted trips available.</td>
                         </tr>
                     @endif
                 </tbody>

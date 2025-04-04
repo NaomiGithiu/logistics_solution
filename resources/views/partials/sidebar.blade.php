@@ -51,6 +51,10 @@
         Pending Trips
     </a>
 
+    <a class="dropdown-item text-light fw-bold" href="{{ route('admin.canceledTrips') }}">
+        Canceled Trips
+    </a>
+
     <a class="dropdown-item text-light fw-bold" href="{{ route('assignedTrips') }}">
         🚖 Assigned Trips
     </a

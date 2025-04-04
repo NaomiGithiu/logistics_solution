@@ -19,7 +19,9 @@ class Booking extends Model
         'vehicle_type',
         'scheduled_time',
         'status',
-        'weight'
+        'weight',
+        'canceled_by',
+        'cancel_reason',
     ];
 
     public function customer()

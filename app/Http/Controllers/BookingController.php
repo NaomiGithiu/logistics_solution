@@ -74,7 +74,7 @@ class BookingController extends Controller
         //$booking = Booking::with(['trip.driver'])->findOrFail($id);
         $customerId = auth()->id();
         $details = Booking::where('customer_id', $customerId)
-                        ->where('status', 'pending')
+                        ->where('status', '!=', 'completed')
                         ->get();
         return view('customer.details', compact('details'));
         //return view('customer.details', compact('booking'));

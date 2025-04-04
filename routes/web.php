@@ -51,6 +51,9 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::put('update/{id}', [TripController::class, 'updateBooking'])->name('admin.updateBooking');
     Route::get('admin/assignedTrips', [TripController::class, 'assignedTrips'])->name('assignedTrips');
     Route::get('/admin/report', [TripController::class, 'report'])->name('report');
+    Route::get('/admin/canceled-trips', [TripController::class, 'canceledTrips'])->name('admin.canceledTrips');
+    Route::post('/admin/reassign-driver/{id}', [TripController::class, 'reassignDriver'])->name('admin.reassignDriver');
+
 });
 
 Route::prefix('customer')->middleware('auth')->group(function () {
@@ -60,9 +63,12 @@ Route::prefix('customer')->middleware('auth')->group(function () {
 Route::prefix('driver')->middleware('auth')->group(function () {
     Route::get('drivers/dashboard', [TripController::class, 'driverDashboard'])->name('driver.dashboard');
     Route::get('/trips/accepted', [TripController::class, 'acceptedTrips'])->name('trips.accepted');
-    Route::put('/trips/{id}/completeTrip', [TripController::class, 'completeTrip'])->name('trips.complete');
+    Route::put('/trips/{id}/complete', [TripController::class, 'completeTrip'])->name('trips.complete');
     Route::get('/trips/completedTrip', [TripController::class, 'completedTrips'])->name('trips.completed');
     Route::get('/earnings', [TripController::class, 'earningsSummary'])->name('earnings');
+    Route::put('/trips/{id}/cancel', [TripController::class, 'cancelTrip'])->name('trips.cancel');
+    Route::post('/trips/{id}/start', [TripController::class, 'startTrip'])->name('trips.start');
+
 });
 
 

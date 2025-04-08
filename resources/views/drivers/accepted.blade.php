@@ -27,13 +27,13 @@
                         <td>{{ number_format($booking->estimated_fare, 2) }}</td>
                         <td>
                             <div class="d-flex gap-2">
-                                @if($booking->status === 'pending')
+                                @if($booking->status === 'confirmed')
                                     <!-- Start Trip Button -->
                                     <form action="{{ route('trips.start', $booking->id) }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-sm btn-primary">▶️ Start Trip</button>
                                     </form>
-                                @elseif($booking->status === 'confirmed')
+                                @elseif($booking->status === 'in_progress')
                                     <!-- Complete Trip Button -->
                                     <form action="{{ route('trips.complete', $booking->id) }}" method="POST">
                                         @csrf
@@ -47,7 +47,7 @@
                                     <form action="{{ route('trips.cancel', $booking->id) }}" method="POST" class="d-flex gap-2">
                                         @csrf
                                         @method('PUT')
-                                        <input type="text" name="cancel_reason" class="form-control form-control-sm w-auto" placeholder="Reason">
+                                        {{-- <input type="text" name="cancel_reason" class="form-control form-control-sm w-auto" placeholder="Reason"> --}}
                                         <button type="submit" class="btn btn-sm btn-danger">❌ Cancel</button>
                                     </form>
                                 @endif

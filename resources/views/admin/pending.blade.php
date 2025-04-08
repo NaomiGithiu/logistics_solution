@@ -11,6 +11,7 @@
                     <th>#</th>
                     <th>Pickup Location</th>
                     <th>Dropoff Location</th>
+                    <th>Scheduled Time</th>
                     <th>Weight (kg)</th>
                     <th>Assigned Driver</th>
                     <th>Actions</th>
@@ -22,6 +23,7 @@
                     <td>{{ $booking->id }}</td>
                     <td>{{ $booking->pickup_location }}</td>
                     <td>{{ $booking->dropoff_location }}</td>
+                    <td>{{ \Carbon\Carbon::parse($booking->scheduled_time)->format('M d, Y - h:i A') }}</td>
                     <td>
                         <form action="{{ route('admin.updateBooking', $booking->id) }}" method="POST">
                             @csrf

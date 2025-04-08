@@ -23,7 +23,8 @@
                         
                         <div class="mb-3">
                             <label for="phone_number" class="form-label">Phone Number</label>
-                            <input type="text" name="phone_number" id="phone_number" class="form-control" value="{{old('phone_number')}}">
+                            <input type="text" name="phone_number" id="phone_number" class="form-control" maxlength="10" 
+                            pattern="0\d{9}" placeholder="Enter phone number e.g. 0712345678" value="{{old('phone_number')}} ">
 
                             @error('phone_number')
                                 <div style='color:red'>

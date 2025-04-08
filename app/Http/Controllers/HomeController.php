@@ -48,36 +48,40 @@ class HomeController extends Controller
         return view('otp-verification');
     }
 
-    public function useractivation(Request $request){
-        $get_token = $request->token;
-        $get_token = VerifyToken::where('token', $get_token)->first();
-    
-        if($get_token){
-            $user = User::where('email', $get_token->email)->first();
-            $user->is_activated = 1; // Activate user
-            $user->save();
-    
-            // Delete Token after activation
-            $get_token->delete();
-            
-            // Log the user in
-            //auth()->login($user);
-            //dd(auth()->check(), auth()->user());
+    public function useractivation(Request $request)
+    {
+        $get_token = VerifyToken::where('token', $request->token)->first();
 
+        if ($get_token) {
+            $user = User::where('email', $get_token->email)->first();
+            $user->is_activated = 1;
+            $user->save();
+
+            // Delete the token after use
+            $get_token->delete();
+
+            // Log in the user
             auth()->login($user);
             session()->regenerate();
 
+            // ✅ Redirect to profile if password must be changed
+            if ($user->must_change_password) {
+                return redirect()->route('profile')->with('change_password', 'Please change your password before continuing.');
+            }
+
+            // Role-based redirection
             if ($user->role == '1') {
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role == '3') {
                 return redirect()->route('driver.dashboard');
             } else {
-                return redirect()->route('customer.dashboard'); // Default for customers
+                return redirect()->route('customer.dashboard');
             }
-            
-            }else{
-                return redirect('/verifyaccount')->with('status', 'Invalid OTP');
-            }
+
+        } else {
+            return redirect('/verifyaccount')->with('status', 'Invalid OTP');
+        }
     }
+
     
 }

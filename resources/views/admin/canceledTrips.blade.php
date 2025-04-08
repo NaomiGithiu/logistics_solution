@@ -14,7 +14,7 @@
                     <th>Vehicle</th>
                     <th>Weight(kg)</th>
                     <th>Price</th>
-                    <th>Cancel Reason</th>
+                    {{-- <th>Cancel Reason</th> --}}
                     <th>Reassign Driver</th>
                 </tr>
             </thead>
@@ -26,7 +26,7 @@
                     <td class="text-capitalize">{{ $booking->vehicle_type }}</td>
                     <td>{{ $booking->weight }}</td>
                     <td>{{ number_format($booking->estimated_fare, 2) }}</td>
-                    <td>{{ $booking->cancel_reason }}</td>
+                    {{-- <td>{{ $booking->cancel_reason }}</td> --}}
                     <td>
                         <form action="{{ route('admin.reassignDriver', $booking->id) }}" method="POST">
                             @csrf

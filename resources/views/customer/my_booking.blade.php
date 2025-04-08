@@ -31,6 +31,8 @@
                                 <span class="badge bg-warning color-light">Pending</span>
                             @elseif($booking->status == 'confirmed')
                                 <span class="badge bg-success">Confirmed</span>
+                            @elseif($booking->status == 'in_progress')
+                                <span class="badge bg-success">In_progress</span>
                             @elseif($booking->status == 'completed')
                                 <span class="badge bg-primary">Completed</span>
                             @elseif($booking->status == 'canceled')

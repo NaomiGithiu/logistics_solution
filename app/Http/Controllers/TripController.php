@@ -5,42 +5,96 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class TripController extends Controller
 {
     
-    public function adminDashboard()
+    public function adminDashboard(Request $request)
     {
-        $pendingTripsCount = Booking::where('status', 'pending')->count();
-
-        // Count all completed trips
-        $completedTrips = Booking::where('status', 'completed')->count();
-
-        // Count all canceled trips
-        $canceledTrips = Booking::where('status', 'canceled')->count();
-
-         // Fetch total earnings per driver
-        $driverEarnings = Booking::where('status', 'completed')
-        ->select('driver_id', \DB::raw('SUM(estimated_fare) as total_earnings'))
-        ->groupBy('driver_id')
-        ->with('driver') // Assuming a relationship exists in Booking model
-        ->get();
-
-        $totalEarnings = $driverEarnings->sum('total_earnings');
-
-        return view('admin.dashboard', compact('completedTrips', 'canceledTrips', 'pendingTripsCount', 'driverEarnings', 'totalEarnings'));
+            $filter = $request->get('filter', 'today');
+    
+            $today = Carbon::today();
+            $sevenDaysAgo = Carbon::today()->subDays(7);
+            $startOfMonth = Carbon::now()->startOfMonth();
+    
+            $completedBookingsQuery = Booking::where('status', 'completed');
+            $driverEarningsQuery = Booking::where('status', 'completed');
+            // $bookingsQuery = Booking::where('status', 'pending');
+            $pendingTripsQuery = Booking::where('status', 'pending');
+            $completedTripsQuery = Booking::where('status', 'completed');
+            $canceledTripsQuery = Booking::where('status', 'canceled');
+    
+            switch ($filter) {
+                case 'today':
+                    $completedBookingsQuery->whereDate('created_at', $today);
+                    $driverEarningsQuery->whereDate('created_at', $today);
+                    // $bookingsQuery->whereDate('created_at', $today);
+                    $pendingTripsQuery->whereDate('created_at', $today);
+                    $completedTripsQuery->whereDate('created_at', $today);
+                    $canceledTripsQuery->whereDate('created_at', $today);
+                    break;
+    
+                case 'last_7_days':
+                    $completedBookingsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    $driverEarningsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    // $bookingsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    $pendingTripsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    $completedTripsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    $canceledTripsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                    break;
+    
+                case 'monthly':
+                    $completedBookingsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    $driverEarningsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    // $bookingsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    $pendingTripsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    $completedTripsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    $canceledTripsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                    break;
+            }
+    
+            $completedBookings = $completedBookingsQuery->get();
+            $totalEarnings = $completedBookings->sum('estimated_fare');
+            $pendingTripsCount = $pendingTripsQuery->count();
+            $completedTrips = $completedTripsQuery->count();
+            $canceledTrips = $canceledTripsQuery->count();
+    
+            $driverEarnings = $driverEarningsQuery
+                ->select('driver_id', \DB::raw('SUM(estimated_fare) as total_earnings'))
+                ->groupBy('driver_id')
+                ->with('driver')
+                ->get();
+    
+            return view('admin.dashboard', compact(
+                'completedBookings',
+                'totalEarnings',
+                'driverEarnings',
+                'filter',
+                'completedTrips', 
+                'canceledTrips', 
+                'pendingTripsCount'
+            ));
     }
 
     
-    // Show all pending bookings for admin to review and assign
     public function pendingTrips()
     {
-        $bookings = Booking::where('status', 'pending')->get();  // Fetch all pending bookings
-        $drivers = User::where('role', '3')->get();  // Fetch all drivers (role 'driver')
-
+        // Get the current time for comparison
+        $now = Carbon::now();
+    
+        // Fetch all pending bookings with a scheduled_time that has passed (i.e., scheduled_time <= now)
+        $bookings = Booking::where('status', 'pending')
+            ->where('scheduled_time', '<=', $now)  // Only bookings whose scheduled_time has passed or is now
+            ->get();
+    
+        // Fetch all drivers (role 'driver')
+        $drivers = User::where('role', '3')->get();  // Assuming drivers have role '3'
+    
         // Return the view with the pending bookings and available drivers
         return view('admin.pending', compact('bookings', 'drivers'));
     }
+    
 
     // Admin assigns weight, driver, and calculates fare
     public function updateBooking(Request $request, $id)
@@ -62,6 +116,7 @@ class TripController extends Controller
             'weight' => $weight,
             'driver_id' => $request->input('driver_id'),
             'estimated_fare' => $estimatedFare,
+            'status' => 'confirmed'
         ]);
 
         return redirect()->route('admin.pending')->with('success', 'Booking updated successfully!');
@@ -84,30 +139,111 @@ class TripController extends Controller
     }
     public function assignedTrips()
     {  
-        $bookings = Booking::where('status', 'confirmed')
+        $bookings = Booking::where('status', 'in_progress')
                             ->get();  // Fetch confirmed bookings for all drivers
 
         return view('admin.assignedTrips', compact('bookings'));  // Return the driver's dashboard
     }
 
-    public function report()
+    public function incomereport(Request $request)
     {
-        $completedBookings = Booking::where('status', 'completed')
-                                    ->get();
-           
-        $canceledBookings = Booking::where('status', 'canceled')
-        ->get();
+        $filter = $request->get('filter', 'today');
 
+        $today = Carbon::today();
+        $sevenDaysAgo = Carbon::today()->subDays(7);
+        $startOfMonth = Carbon::now()->startOfMonth();
+
+        $completedBookingsQuery = Booking::where('status', 'completed');
+        $driverEarningsQuery = Booking::where('status', 'completed');
+
+        switch ($filter) {
+            case 'today':
+                $completedBookingsQuery->whereDate('created_at', $today);
+                $driverEarningsQuery->whereDate('created_at', $today);
+                break;
+
+            case 'last_7_days':
+                $completedBookingsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                $driverEarningsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                break;
+
+            case 'monthly':
+                $completedBookingsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                $driverEarningsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                break;
+        }
+
+        $completedBookings = $completedBookingsQuery->get();
         $totalEarnings = $completedBookings->sum('estimated_fare');
 
-        $driverEarnings = Booking::where('status', 'completed')
-                                ->select('driver_id', \DB::raw('SUM(estimated_fare) as total_earnings'))
-                                ->groupBy('driver_id')
-                                ->with('driver') 
-                                ->get();
+        $driverEarnings = $driverEarningsQuery
+            ->select('driver_id', \DB::raw('SUM(estimated_fare) as total_earnings'))
+            ->groupBy('driver_id')
+            ->with('driver')
+            ->get();
 
-        return view('admin.report', compact('completedBookings', 'totalEarnings', 'canceledBookings', 'driverEarnings'));
+        return view('admin.reports.income', compact(
+            'completedBookings',
+            'totalEarnings',
+            'driverEarnings',
+            'filter'
+        ));
     }
+
+    public function tripreport(Request $request)
+    {
+    // Get the filter from the request, default to 'today'
+        $filter = $request->get('filter', 'today');
+
+        // Get the current date and time
+        $today = Carbon::today();
+        //dd($today);
+        $sevenDaysAgo = Carbon::today()->subDays(7);
+        $startOfMonth = Carbon::now()->startOfMonth();
+
+        // Base query for Bookings
+        $completedBookingsQuery = Booking::where('status', 'completed');
+        $canceledBookingsQuery = Booking::where('status', 'canceled');
+        $pendingQuery = Booking::where('status', 'pending');
+        $inProgressQuery = Booking::where('status', 'in_progress');
+
+        // Apply date filters based on the selected filter
+        switch ($filter) {
+            case 'today':
+                // Filter bookings for today
+                $completedBookingsQuery->whereDate('created_at', $today);
+                $canceledBookingsQuery->whereDate('created_at', $today);
+                $pendingQuery->whereDate('created_at', $today);
+                $inProgressQuery->whereDate('created_at', $today);
+                break;
+            
+            case 'last_7_days':
+                // Filter bookings from the last 7 days
+                $completedBookingsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                $canceledBookingsQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                $pendingQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                $inProgressQuery->whereBetween('created_at', [$sevenDaysAgo, $today]);
+                break;
+            
+            case 'monthly':
+                // Filter bookings for the current month
+                $completedBookingsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                $canceledBookingsQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                $pendingQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                $inProgressQuery->whereBetween('created_at', [$startOfMonth, $today]);
+                break;
+        }
+
+    // Execute the queries
+        $completedBookings = $completedBookingsQuery->get();
+        $canceledBookings = $canceledBookingsQuery->get();
+        $pending = $pendingQuery->get();
+        $in_progress = $inProgressQuery->get();
+        
+        // Return the view with the filtered data
+        return view('admin.reports.trips', compact('completedBookings',  'canceledBookings', 'in_progress', 'pending', 'filter'));
+    }
+
 
     public function driverDashboard()
     {
@@ -152,7 +288,7 @@ class TripController extends Controller
     {
         $booking = Booking::findOrFail($id);
     
-        $booking->update(['status' => 'confirmed']);
+        $booking->update(['status' => 'in_progress']);
     
         return back()->with('success', 'Trip started successfully.');
     }
@@ -175,22 +311,18 @@ class TripController extends Controller
         // ]);
 
         $booking->update([
-            'status' => 'canceled',
+            'status' => 'confirmed',
             'canceled_by' => 'driver',
-            'cancel_reason' => $request->cancel_reason,
         ]);
         
         $booking->save();
-
-        dd($booking->canceled_by);
     
         return back()->with('success', 'Trip has been canceled.');
     }
     
     public function canceledTrips()
     {
-        $canceledBookings = Booking::where('status', 'canceled')
-            ->where('canceled_by', 'driver') // Fetch only driver-canceled bookings
+        $canceledBookings = Booking::where('canceled_by', 'driver') // Fetch only driver-canceled bookings
             ->get();
 
         $drivers = User::where('role', '3')->get(); // Fetch all drivers
@@ -207,9 +339,8 @@ class TripController extends Controller
 
         $booking->update([
             'driver_id' => $request->input('driver_id'),
-            'status' => 'confirmed',
-            'canceled_by' => null, 
-            'cancel_reason' => null, 
+            'status' => 'in_progress',
+            'canceled_by' => null,  
         ]);
 
         return back()->with('success', 'Driver reassigned successfully!');

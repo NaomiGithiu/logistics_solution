@@ -9,6 +9,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\TripController;
+use App\Http\Controllers\RoleController;
 
 Route::get("/", [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/', [LoginController::class, 'store'])->name('store');
@@ -30,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('password.update.custom');
 });
 
 // booking
@@ -45,12 +47,18 @@ Route::middleware(['auth'])->group(function () {
 
 Route::resource('/users', DriverController::class);
 
+Route::middleware(['auth'])->group(function () {
+    Route::resource('roles', RoleController::class);
+});
+
+
 Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('dashboard', [TripController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('admin/pending', [TripController::class, 'pendingTrips'])->name('admin.pending');
     Route::put('update/{id}', [TripController::class, 'updateBooking'])->name('admin.updateBooking');
     Route::get('admin/assignedTrips', [TripController::class, 'assignedTrips'])->name('assignedTrips');
-    Route::get('/admin/report', [TripController::class, 'report'])->name('report');
+    Route::get('/admin/reports/trip', [TripController::class, 'tripreport'])->name('tripreport');
+    Route::get('/admin/report/income', [TripController::class, 'incomereport'])->name('incomereport');
     Route::get('/admin/canceled-trips', [TripController::class, 'canceledTrips'])->name('admin.canceledTrips');
     Route::post('/admin/reassign-driver/{id}', [TripController::class, 'reassignDriver'])->name('admin.reassignDriver');
 
@@ -70,6 +78,7 @@ Route::prefix('driver')->middleware('auth')->group(function () {
     Route::post('/trips/{id}/start', [TripController::class, 'startTrip'])->name('trips.start');
 
 });
+
 
 
 

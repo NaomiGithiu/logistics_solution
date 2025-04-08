@@ -7,6 +7,8 @@ use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvi
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
+use Spatie\Permission\Models\Role as SpatieRole;
+
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,11 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
+        parent::boot();
+
+        Route::model('role', SpatieRole::class);
+
         $this->configureRateLimiting();
 
         $this->routes(function () {

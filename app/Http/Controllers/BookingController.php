@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingConfirmation;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -25,50 +26,54 @@ class BookingController extends Controller
     }
     
     public function create(Request $request)
-{
-    $request->validate([
-        'customer_id' => 'required|exists:users,id',
-        'pickup_location' => 'required|string',
-        'dropoff_location' => 'required|string',
-        'vehicle_type' => 'required|in:bike,van,truck,taxi',
-        'scheduled_time' => 'nullable|date|after:now',
-    ]);
+    {
+        // Validate the incoming request
+        $request->validate([
+            'customer_id' => 'required|exists:users,id',
+            'pickup_location' => 'required|string',
+            'dropoff_location' => 'required|string',
+            'vehicle_type' => 'required|in:bike,van,truck,taxi',
+            'scheduled_time' => $request->ride_type === 'express' ? 'nullable' : 'nullable|date|after:now', // Allow nullable for express
+            'ride_type' => 'required|in:express,standard',
+        ]);
+    
+        // Check if the ride is express or standard
+        if ($request->ride_type === 'express') {
+            // If it's express, set the scheduled time to the current time
+            $scheduled_time = now(); // Using Carbon for current date/time
+        } else {
+            // Otherwise, use the scheduled time provided in the form
+            $scheduled_time = $request->scheduled_time ? Carbon::parse($request->scheduled_time) : null;
+        }
 
-    // Calculate estimated fare (dummy logic)
-    // $distance = rand(5, 50);
-    // $weight = rand(1, 10);
-    // $farePerKm = ['bike' => 10, 'van' => 20, 'truck' => 50, 'taxi' => 30];
-    // $estimated_fare = ($distance * $farePerKm[$request->vehicle_type]) + ($weight * 5);
-
-    $customer_id = auth()->id();
-    if (!$customer_id) {
-        return back()->withErrors(['error' => 'User must be logged in to book.']);
+        // Get the customer ID from the authenticated user
+        $customer_id = auth()->id();
+    
+        // Assign an available driver
+        $driver = User::where('role', 'driver')->whereDoesntHave('trips', function($query) {
+            $query->whereIn('status', ['pending', 'in_progress']);
+        })->first();
+    
+        // Create the booking
+        $booking = Booking::create([
+            'customer_id' => $customer_id,
+            'pickup_location' => $request->pickup_location,
+            'dropoff_location' => $request->dropoff_location,
+            'vehicle_type' => $request->vehicle_type,
+            'scheduled_time' => $scheduled_time, // Set based on express or standard
+            'status' => 'pending',
+            'ride_type' => $request->ride_type, // Save the ride type (express/standard)
+            'rider_id' => $driver ? $driver->id : null,
+        ]);
+    
+        // Send confirmation email
+        Mail::to($booking->customer->email)->send(new BookingConfirmation($booking));
+    
+        return redirect()->route('bookings.details', ['id' => $booking->id])
+            ->with('success', 'Booking created successfully!');
     }
-
-    // Assign an available driver
-    $driver = User::where('role', 'driver')->whereDoesntHave('trips', function($query) {
-        $query->whereIn('status', ['pending', 'in_progress']);
-    })->first();
-
-    // Create booking
-    $booking = Booking::create([
-        'customer_id' => $customer_id,
-        'pickup_location' => $request->pickup_location,
-        'dropoff_location' => $request->dropoff_location,
-       // 'estimated_fare' => $estimated_fare,
-        'vehicle_type' => $request->vehicle_type,
-        'scheduled_time' => $request->scheduled_time ? date('Y-m-d H:i:s', strtotime($request->scheduled_time)) : null,
-        'status' => 'pending',
-        'rider_id' => $driver ? $driver->id : null, 
-    ]);
-
-    // Send confirmation email
-    Mail::to($booking->customer->email)->send(new BookingConfirmation($booking));
-
-    return redirect()->route('bookings.details', ['id' => $booking->id])
-        ->with('success', 'Booking created successfully!'. ($driver ? ' Driver assigned: ' . $driver->name : ' No driver available.'));
-}
-
+    
+        
    public function show($id)
     {
         //$booking = Booking::with(['trip.driver'])->findOrFail($id);

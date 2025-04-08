@@ -42,23 +42,89 @@
         </div>
     </li>
 
+{{-- Admin --}}
+
 @if (auth()->check() && auth()->user()->role == '1')
-    <a class="dropdown-item text-light fw-bold" href="{{ url('users') }}">
-        Manage Users
+   
+    <a class="dropdown-item text-light" href="{{ url('users') }}">
+        <i class="bi bi-person me-2"></i>  <!-- Simple user icon -->
+         Manage Users
     </a>
 
-    <a class="dropdown-item text-light fw-bold" href="{{ route('admin.pending') }}">
-        Pending Trips
-    </a>
 
-    <a class="dropdown-item text-light fw-bold" href="{{ route('admin.canceledTrips') }}">
-        Canceled Trips
-    </a>
+   <div class="dropdown">
+        <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Manage Trips
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
+            <li>
+                <a class="dropdown-item text-dark" href="{{ route('admin.pending') }}">
+                    Pending Trips
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item text-dark" href="{{ route('admin.canceledTrips') }}">
+                    Canceled Trips
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item text-dark" href="{{ route('assignedTrips') }}">
+                    🚖 Assigned Trips
+                </a>
+            </li>
+        </ul>
+    </div>
 
-    <a class="dropdown-item text-light fw-bold" href="{{ route('assignedTrips') }}">
-        🚖 Assigned Trips
-    </a
     
+
+    <hr class="sidebar-divider">
+
+    <!-- Heading -->
+    <div class="sidebar-heading">
+        Addons
+    </div>
+
+    <!-- Nav Item - Pages Collapse Menu -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
+                aria-expanded="true" aria-controls="collapsePages">
+                <i class="fas fa-fw fa-folder"></i>
+                <span>Roles & Permissions</span>
+            </a>
+            <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                <div class="bg-white py-2 collapse-inner rounded">
+                    <a href="{{ route('roles.index') }}"><i class="fa fa-circle-o "></i> Manage Roles</a><br>
+                    {{-- <a href="{{ route('permissions.index') }}"><i class="fa fa-circle-o"></i> Manage Permissions</a> --}}
+                </div>
+            </div>
+        </li>
+
+        <div class="dropdown">
+            <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Reports
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
+            
+                <li>
+                    <a class="nav-link" href="{{route('incomereport')}}">
+                        <i class="fas fa-fw fa-chart-area"></i>
+                        <span>Income Reports</span>
+                    </a>
+
+                    <a class="nav-link" href="{{route('tripreport')}}">
+                        <i class="fas fa-fw fa-chart-area"></i>
+                        <span>Trips Report</span>
+                    </a>
+
+                    {{-- <a class="nav-link" href="{{route('report')}}">
+                        <i class="fas fa-fw fa-chart-area"></i>
+                        <span>Users Report</span>
+                    </a> --}}
+                </li>
+            </ul>
+        </div>
+
+        {{-- Driver --}}
 
 @elseif(auth()->check() && auth()->user()->role=='3')
 
@@ -68,6 +134,9 @@
     
     <a class="dropdown-item text-light fw-bold" href="{{ route('trips.completed') }}">
         🚖 Completed Trips</a>
+
+        {{-- customer --}}
+
 @else
     <a class="dropdown-item text-light fw-bold" href="{{ route('booking') }}">
         Booking
@@ -78,42 +147,6 @@
     </a>
     
 @endif
-    
-    <!-- Divider -->
-    <hr class="sidebar-divider">
-
-    <!-- Heading -->
-    <div class="sidebar-heading">
-        Addons
-    </div>
-
-    <!-- Nav Item - Pages Collapse Menu -->
-    <li class="nav-item">
-        <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-            aria-expanded="true" aria-controls="collapsePages">
-            <i class="fas fa-fw fa-folder"></i>
-            <span>Pages</span>
-        </a>
-        <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-            <div class="bg-white py-2 collapse-inner rounded">
-                <h6 class="collapse-header">Login Screens:</h6>
-                <a class="collapse-item" href="login.html">Login</a>
-                <a class="collapse-item" href="register.html">Register</a>
-                <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
-                <div class="collapse-divider"></div>
-                <h6 class="collapse-header">Other Pages:</h6>
-                <a class="collapse-item" href="404.html">404 Page</a>
-                <a class="collapse-item" href="blank.html">Blank Page</a>
-            </div>
-        </div>
-    </li>
-
-    <!-- Nav Item - Charts -->
-    <li class="nav-item">
-        <a class="nav-link" href="charts.html">
-            <i class="fas fa-fw fa-chart-area"></i>
-            <span>Charts</span></a>
-    </li>
 
     <!-- Nav Item - Tables -->
     <li class="nav-item">
@@ -131,3 +164,9 @@
     </div>
 
 </ul>
+
+<!-- Bootstrap CSS (via CDN) -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap JS (via CDN) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"></script>

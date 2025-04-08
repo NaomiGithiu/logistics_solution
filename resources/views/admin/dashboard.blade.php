@@ -26,9 +26,25 @@
                     <!-- Page Heading -->
                     <div class="d-sm-flex align-items-center justify-content-between mb-4">
                         <h1 class="h3 mb-0 text-gray-800">Welcome, {{ Auth::user()->name }}!</h1>
-                        <a href="{{route('report')}}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-                                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+                        {{-- <a href="{{route('report')}}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
+                                class="fas fa-download fa-sm text-white-50"></i> Generate Report</a> --}}
                     </div>
+
+                    <div>
+                        <form action="{{ route('admin.dashboard') }}" method="GET">
+                            <div class="form-group">
+                                <label for="filter">Filter By</label>
+                                <select name="filter" id="filter" class="form-control w-25">
+                                    <option value="today" {{ request('filter') == 'today' ? 'selected' : '' }}>Today</option>
+                                    <option value="last_7_days" {{ request('filter') == 'last_7_days' ? 'selected' : '' }}>Last 7 Days</option>
+                                    <option value="monthly" {{ request('filter') == 'monthly' ? 'selected' : '' }}>Monthly</option>
+                                </select>        
+                            </div>
+                            <button type="submit" class="btn btn-primary">Apply Filter</button>
+                        </form>
+                    </div>
+                    <br>
+
                     <div class="row">
                         <div class="col-md-4">
                             <div class="card text-white bg-success mb-3">

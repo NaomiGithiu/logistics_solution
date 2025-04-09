@@ -5,11 +5,16 @@
 <div class="container-fluid">
     <div class="card shadow-lg mx-auto p-4" style="max-width: 600px;">
 
-        @if(session('change_password'))
-            <div class="alert alert-warning">
-                {{ session('change_password') }}
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
+    
 
         <div class="card-header bg-primary text-white text-center">
             <h2 class="mb-0">Edit Profile</h2>

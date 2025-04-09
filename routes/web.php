@@ -10,6 +10,8 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use APP\Http\Controllers\Auth\ResetPasswordController;
 
 Route::get("/", [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/', [LoginController::class, 'store'])->name('store');
@@ -31,7 +33,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'profile'])->name('profile');
     Route::get('/profile/edit', [ProfileController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile/update', [ProfileController::class, 'updateProfile'])->name('profile.update');
-    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('password.update.custom');
+    //Route::post('/profile/update-password', [ProfileController::class, 'updatePassword']);
 });
 
 // booking
@@ -79,19 +81,8 @@ Route::prefix('driver')->middleware('auth')->group(function () {
 
 });
 
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('requestform');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
 
-
-
-// Route::get('/admin/pending', [TripController::class, 'adminDashboard'])->name('admin.pending');
-// Route::put('/trips/{trip}', [TripController::class, 'update'])->name('bookings.update');
-
-// Route::post('/trips/{trip}/accept', [TripController::class, 'acceptTrip'])->name('bookings.accept');
-// Route::post('/trips/{trip}/reject', [TripController::class, 'rejectTrip'])->name('bookings.reject');
-
-// Route::get('/trips/accepted', [TripController::class, 'acceptedTrips'])->name('trips.accepted');
-// Route::put('/trips/{id}/complete', [TripController::class, 'completeTrip'])->name('trips.complete');
-// Route::put('/trips/{id}/cancel', [TripController::class, 'cancelTrip'])->name('trips.cancel');
-// Route::get('/trips/completed', [TripController::class, 'completedTrips'])->name('trips.completed');
-
-    
-
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm']);
+Route::post('/reset-password', [ResetPasswordController::class, 'reset']);

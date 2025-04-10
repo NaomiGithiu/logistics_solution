@@ -11,7 +11,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\TripController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Auth\ForgotPasswordController;
-use APP\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 Route::get("/", [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/', [LoginController::class, 'store'])->name('store');
@@ -81,8 +81,9 @@ Route::prefix('driver')->middleware('auth')->group(function () {
 
 });
 
-Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('requestform');
-Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail']);
+Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 
-Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm']);
-Route::post('/reset-password', [ResetPasswordController::class, 'reset']);
+Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+

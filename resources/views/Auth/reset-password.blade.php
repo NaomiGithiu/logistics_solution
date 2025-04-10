@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Forgot Password</title>
+    <title>Reset Password</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
@@ -11,13 +11,9 @@
 
             <div class="card shadow">
                 <div class="card-header text-center">
-                    <h4>Forgot Password</h4>
+                    <h4>Reset Your Password</h4>
                 </div>
                 <div class="card-body">
-
-                    @if (session('status'))
-                        <div class="alert alert-success">{{ session('status') }}</div>
-                    @endif
 
                     @if ($errors->any())
                         <div class="alert alert-danger">
@@ -29,13 +25,26 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('password.email') }}">
+                    <form method="POST" action="{{ route('password.update') }}">
                         @csrf
+                        <input type="hidden" name="token" value="{{ $token }}">
+
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email address</label>
+                            <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Send Reset Link</button>
+
+                        <div class="mb-3">
+                            <label class="form-label">New Password</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" name="password_confirmation" class="form-control" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100">Reset Password</button>
                     </form>
 
                 </div>

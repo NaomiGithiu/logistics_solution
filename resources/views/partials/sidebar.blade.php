@@ -51,6 +51,10 @@
          Manage Users
     </a>
 
+    <a class="dropdown-item text-lignt" href="{{ route('corporates.index') }}">
+        Manage corporate
+    </a>
+
 
    <div class="dropdown">
         <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">

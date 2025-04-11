@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\VerifyToken;
 use App\Mail\welcomeMail;
 use App\Mail\User;
+use illuminate\Support\Facades\Log;
 
 
 class LoginController extends Controller
@@ -35,7 +36,10 @@ class LoginController extends Controller
         $get_token->email = $request['email'];
         $get_token->save();
 
-        $user = Auth::user(); // Get the logged-in user object
+        
+        $user = Auth::user();
+        Log::info("OTP for {$user->email}:{$validToken}");
+ 
         Mail::to($request['email'])->send(new welcomeMail($request['email'], $validToken, $user->name));
     
 

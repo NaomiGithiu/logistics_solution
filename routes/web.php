@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CorporateController;
 use App\Http\Controllers\DriverController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
@@ -49,6 +50,7 @@ Route::middleware(['auth'])->group(function () {
 
 Route::resource('/users', DriverController::class);
 
+
 Route::middleware(['auth'])->group(function () {
     Route::resource('roles', RoleController::class);
 });
@@ -86,4 +88,10 @@ Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLink
 
 Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+// Corporates
+
+Route::resource('/corporates', CorporateController::class);
+Route::get('corporates/{corporateId}/add_admin', [CorporateController::class, 'addAdminForm'])->name('corporates.addAdminForm');
+Route::post('corporates/{corporateId}/add_admin', [CorporateController::class, 'addAdmin'])->name('corporates.addAdmin');
 

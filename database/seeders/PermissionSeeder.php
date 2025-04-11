@@ -12,6 +12,10 @@ class PermissionSeeder extends Seeder
     {
         
         $permissions = [
+            'add company',
+            'add corporate admins',
+            'aprove trip',
+            'reject trip',
             'create trips',
             'view trips',
             'assign trips',
@@ -39,6 +43,7 @@ class PermissionSeeder extends Seeder
             'manage settings',
             'view dashboard',
             'view reports',
+            
         ];
 
         foreach ($permissions as $permission) {

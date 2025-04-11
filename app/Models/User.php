@@ -25,6 +25,8 @@ class User extends Authenticatable implements CanResetPasswordContract
         'email',
         'password',
         'role',
+        'corporate_id',          
+        'is_corporate_admin', 
         'must_change_password'
         
     ];

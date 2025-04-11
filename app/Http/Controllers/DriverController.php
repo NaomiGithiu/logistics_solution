@@ -15,8 +15,8 @@ class DriverController extends Controller
 {
     public function index()
     {
+        $users = User::with('roles')->get();
         $role = Role::all();
-        $users = User::all();
         return view('users.index', compact('role'))->with('users', $users);
     }
 
@@ -29,7 +29,7 @@ class DriverController extends Controller
     public function store(StoreUserRequest $request)
     {
         // Generate a random password (you can specify the length you prefer)
-        $randomPassword = Str::random(10);  // For example, a 10-character random password
+        $randomPassword = Str::random(10);  
 
         // Create the user with the generated password
         $user = User::create([

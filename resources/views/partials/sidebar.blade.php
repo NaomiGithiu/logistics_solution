@@ -197,17 +197,23 @@
         </a>
     </li>
 
+   
+</div>
+
+<div class="dropdown">
+    <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Approve Trips
+    </button>
+
     <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
         <li>
             <a class="dropdown-item text-dark" href="{{ route('bookings.pending-approvals') }}">
                 Pending Trips
             </a>
         </li>
-       
+    
     </ul>
 </div>
-
-
 @endif
 
     <!-- Nav Item - Tables -->

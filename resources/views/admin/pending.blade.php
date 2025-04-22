@@ -173,7 +173,7 @@
 </div>
 
 <!-- Bulk assingment -->
-<div class="modal fade" id="assignModal{{ $booking->id }}" tabindex="-1">
+<div class="modal fade" id="assignModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <form id="assignmentForm" method="POST">

@@ -109,7 +109,7 @@ class TripController extends Controller
         $corporate_id = auth()->user()->corporate_id;
         
         // Base query
-        $query = Booking::where('status', 'pending')
+        $query = Booking::where('status', 'approved')
                     ->where('scheduled_time', '<=', $now);
         
         // Apply corporate filter if exists
@@ -128,7 +128,8 @@ class TripController extends Controller
         }
         
         $bookings = $query->get();
-        $drivers = User::where('role', '3')->get();
+        $drivers = User::where('corporate_id', $corporate_id)
+                        ->where('role', '3')->get();
         
         return view('admin.pending', [
             'bookings' => $bookings,

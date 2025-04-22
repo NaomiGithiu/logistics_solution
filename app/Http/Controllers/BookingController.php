@@ -232,7 +232,7 @@ class BookingController extends Controller
         ]);
 
         $trip->update([
-            'status' => 'confirmed',
+            'status' => 'approved',
             'approved_by' => auth()->id(),
             'approval_comments' => $request->comments,
             'approved_at' => now(),
@@ -255,7 +255,7 @@ class BookingController extends Controller
         ]);
 
         $trip->update([
-            'status' => 'rejected',
+            'status' => 'canceled',
             'rejected_by' => auth()->id(),
             'rejection_reason' => $request->rejection_reason,
             'rejected_at' => now(),

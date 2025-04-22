@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('corporate__companies', function (Blueprint $table) {
+        Schema::create('corporate_companies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('corporate_id')->unique();

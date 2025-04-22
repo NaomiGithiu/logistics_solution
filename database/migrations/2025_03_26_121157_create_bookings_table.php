@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->decimal('estimated_fare', 10, 2)->nullable();
             $table->enum('vehicle_type', ['bike', 'van', 'truck', 'taxi']);
             $table->timestamp('scheduled_time')->nullable();
-            $table->enum('status', ['pending', 'confirmed', 'in_progress', 'completed', 'canceled'])->default('pending');
+            $table->enum('status', ['pending', 'approved','confirmed', 'in_progress', 'completed', 'canceled'])->default('pending');
             $table->timestamps();
         });
     }

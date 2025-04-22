@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Corporate_Companies;
 use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Auth\Passwords\CanResetPassword;
@@ -61,7 +62,12 @@ class User extends Authenticatable implements CanResetPasswordContract
     public function assignedTrips()
     {
         return $this->hasMany(Trip::class, 'driver_id');
-    }   
+    } 
+    
+    public function corporate()
+    {
+        return $this->belongsTo(Corporate_Companies::class, 'corporate_id');
+    }
         
 
 }

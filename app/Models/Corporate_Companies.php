@@ -19,4 +19,10 @@ class Corporate_Companies extends Model
             'contact',
             'address'
     ];
+
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
 }

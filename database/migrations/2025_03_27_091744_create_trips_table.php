@@ -9,17 +9,16 @@ return new class extends Migration {
     {
         Schema::create('trips', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('customer_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('driver_id')->nullable()->constrained('users');
-            $table->string('pickup_location');
-            $table->string('dropoff_location');
-            $table->enum('status', ['pending', 'in_progress', 'delivered', 'canceled'])->default('pending');
-            $table->text('cancel_reason')->nullable();
-            $table->timestamp('scheduled_time')->nullable();
+            $table->string('trip_id')->unique(); // e.g. TRIP-001
+            $table->unsignedBigInteger('driver_id');
+            $table->string('vehicle_number');
+            $table->dateTime('scheduled_time')->nullable();
+            $table->string('status')->default('scheduled'); // scheduled, in_progress, delivered, failed
+            $table->text('failure_reason')->nullable();
             $table->timestamps();
-            $table->unsignedBigInteger('booking_id')->nullable(false)->index();
-            $table->foreign('booking_id')->references('id')->on('bookings');
-            
+
+            $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
+                    
         });
     }
 

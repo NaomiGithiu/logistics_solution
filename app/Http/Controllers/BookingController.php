@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingConfirmation;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\BookingTemplateExport;
+
 
 class BookingController extends Controller
 {
@@ -24,7 +27,7 @@ class BookingController extends Controller
     public function index(){
         return view('customer.create');
     }
-    
+
     public function create(Request $request)
     {
         // Validate the incoming request
@@ -36,73 +39,67 @@ class BookingController extends Controller
             'scheduled_time' => $request->ride_type === 'express' ? 'nullable' : 'nullable|date|after:now', // Allow nullable for express
             'ride_type' => 'required|in:express,standard',
         ]);
-    
+
         // Check if the ride is express or standard
         if ($request->ride_type === 'express') {
-            // If it's express, set the scheduled time to the current time
-            $scheduled_time = now(); // Using Carbon for current date/time
+            $scheduled_time = now();
         } else {
-            // Otherwise, use the scheduled time provided in the form
             $scheduled_time = $request->scheduled_time ? Carbon::parse($request->scheduled_time) : null;
         }
 
-        // Get the customer ID from the authenticated user
-        $customer_id = auth()->id();
-    
-        // Assign an available driver
+        $customer_id = auth()->user()->id;
+        $corporate_id = auth()->corporate_id();
+
         $driver = User::where('role', 'driver')->whereDoesntHave('trips', function($query) {
             $query->whereIn('status', ['pending', 'in_progress']);
         })->first();
-    
-        // Create the booking
+
         $booking = Booking::create([
             'customer_id' => $customer_id,
+            'corporate_id' => $corporate_id,
             'pickup_location' => $request->pickup_location,
             'dropoff_location' => $request->dropoff_location,
             'vehicle_type' => $request->vehicle_type,
-            'scheduled_time' => $scheduled_time, // Set based on express or standard
+            'scheduled_time' => $scheduled_time,
             'status' => 'pending',
-            'ride_type' => $request->ride_type, // Save the ride type (express/standard)
+            'ride_type' => $request->ride_type,
             'rider_id' => $driver ? $driver->id : null,
+            'is_bulk' => false, // default to single booking
+            'trip_id' => null,  // not yet assigned to a trip
         ]);
-    
-        // Send confirmation email
+
         Mail::to($booking->customer->email)->send(new BookingConfirmation($booking));
-    
+
         return redirect()->route('bookings.details', ['id' => $booking->id])
             ->with('success', 'Booking created successfully!');
     }
-    
-        
-   public function show($id)
+
+    public function show($id)
     {
-        //$booking = Booking::with(['trip.driver'])->findOrFail($id);
         $customerId = auth()->id();
         $details = Booking::where('customer_id', $customerId)
                         ->where('status', '!=', 'completed')
                         ->get();
         return view('customer.details', compact('details'));
-        //return view('customer.details', compact('booking'));
     }
-
 
     public function cancel($id)
     {
         $booking = Booking::findOrFail($id);
-    
+
         if ($booking->status !== 'pending') {
             return redirect()->back()->with('error', 'Only pending rides can be canceled.');
         }
-    
+
         $booking->update(['status' => 'canceled']);
-    
+
         return redirect()->route('bookings.details', $id)
                             ->with('success', 'Booking has been canceled successfully.');
     }
 
     public function myBookings()
     {
-        $customerId = auth()->id(); // Get the logged-in customer ID
+        $customerId = auth()->id();
 
         $bookings = Booking::where('customer_id', $customerId)
                             ->orderBy('created_at', 'desc')
@@ -111,10 +108,9 @@ class BookingController extends Controller
         return view('customer.my_booking', compact('bookings'));
     }
 
-
     public function report()
     {
-        $customerId = auth()->id(); // Get the logged-in customer ID
+        $customerId = auth()->id();
 
         $totalTrips = Booking::where('customer_id', $customerId)->count();
 
@@ -122,15 +118,94 @@ class BookingController extends Controller
                             ->where('status', 'completed')
                             ->orderBy('created_at', 'desc')
                             ->get();
-                    
+
         $totalFare = $completedbookings->sum('estimated_fare');
 
         $canceledbookings = Booking::where('customer_id', $customerId)
                             ->where('status', 'canceled')
                             ->orderBy('created_at', 'desc')
                             ->get();
+
         return view('customer.report', compact('completedbookings', 'canceledbookings', 'totalTrips', 'totalFare'));
     }
 
 
+    // Bulk Booking
+    public function showBulkForm()
+    {
+        return view('bookings.bulk');
+    }
+ 
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new BookingTemplateExport, 'booking_template.xlsx');
+    }
+
+    public function handleBulkUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        try {
+            $collection = Excel::toCollection(null, $request->file('file'))->first();
+
+            $corporate_id = auth()->user()->corporate_id; 
+            foreach ($collection as $index => $row) {
+                // Skip empty rows
+                if (empty($row[0]) && empty($row[1]) && empty($row[2]) && empty($row[3])) {
+                    continue;
+                }
+
+                $pickup_location = $row[0];
+                $dropoff_location = $row[1];
+                $vehicle_type = strtolower(trim($row[2]));
+                $ride_type = strtolower(trim($row[3]));
+                $scheduled_time_input = $row[4] ?? null;
+
+                // Validate minimal ride_type and vehicle_type options
+                if (!in_array($ride_type, ['express', 'standard']) || !in_array($vehicle_type, ['bike', 'van', 'truck', 'taxi'])) {
+                    continue; // skip invalid rows
+                }
+
+                $scheduled_time = $ride_type === 'express'
+                    ? now()
+                    : ($scheduled_time_input ? Carbon::parse($scheduled_time_input) : null);
+
+                // Optionally assign a driver
+                $driver = User::where('role', 'driver')->whereDoesntHave('trips', function ($query) {
+                    $query->whereIn('status', ['pending', 'in_progress']);
+                })->first();
+
+                $customer_id = auth()->user()->id;
+
+                $booking = Booking::create([
+                    'customer_id' => $customer_id,
+                    'corporate_id' => $corporate_id,
+                    'pickup_location' => $pickup_location,
+                    'dropoff_location' => $dropoff_location,
+                    'vehicle_type' => $vehicle_type,
+                    'scheduled_time' => $scheduled_time,
+                    'status' => 'pending',
+                    'ride_type' => $ride_type,
+                    'rider_id' => $driver ? $driver->id : null,
+                    'is_bulk' => true,
+                    'trip_id' => null,
+                ]);
+
+                // Send confirmation email if customer is available (optional)
+                if ($booking->customer?->email) {
+                    Mail::to($booking->customer->email)->send(new BookingConfirmation($booking));
+                }
+            }
+
+            return redirect()->route('bookings.bulk')->with('success', 'Bookings uploaded successfully!');
+        } catch (\Exception $e) {
+            return redirect()->route('bookings.bulk')->with('error', 'Upload failed: ' . $e->getMessage());
+        }
+    }
+
+
+    
 }

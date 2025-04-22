@@ -39,5 +39,9 @@ class Booking extends Model
         return $this->hasOne(Trip::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
     
 }

@@ -36,9 +36,11 @@ class HomeController extends Controller
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role == '3') {
                 return redirect()->route('driver.dashboard');
-            } else {
+            } elseif ($user->role == '4') {
                 return redirect()->route('customer.dashboard'); // Default for customers
-            } // Default for other users
+            } else{
+                return redirect()->route('corporate.dashboard');
+            }
         } else {
             return redirect()->route('verifyaccount');
         }
@@ -74,8 +76,10 @@ class HomeController extends Controller
                 return redirect()->route('admin.dashboard');
             } elseif ($user->role == '3') {
                 return redirect()->route('driver.dashboard');
-            } else {
+            } elseif ($user->role == '4') {
                 return redirect()->route('customer.dashboard');
+            }elseif ($user->role == '5') {
+                return redirect()->route('corporate.dashboard');
             }
 
         } else {

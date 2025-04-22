@@ -6,6 +6,8 @@ use App\Models\Booking;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Trip;
 
 class TripController extends Controller
 {
@@ -82,6 +84,7 @@ class TripController extends Controller
     {
         // Get the current time for comparison
         $now = Carbon::now();
+        $corporate_id = auth()->user()->corporate_id;
     
         // Fetch all pending bookings with a scheduled_time that has passed (i.e., scheduled_time <= now)
         $bookings = Booking::where('status', 'pending')
@@ -244,6 +247,42 @@ class TripController extends Controller
         return view('admin.reports.trips', compact('completedBookings',  'canceledBookings', 'in_progress', 'pending', 'filter'));
     }
 
+    // corporate Admins
+
+    public function corporateAdminDashboard(Request $request)
+    {
+        $user = Auth::user();
+
+        // if ($user->role !== 'corporate admin') {
+        //     return response()->json(['error' => 'Unauthorized'], 403);
+        // }
+
+        $companyId = $user->corporate_id;
+
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $status = $request->input('status');
+
+        $tripQuery = Booking::where('corporate_id', $companyId);
+
+        if ($startDate && $endDate) {
+            $tripQuery->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        if ($status) {
+            $tripQuery->where('status', $status);
+        }
+
+        $totalTrips = $tripQuery->count();
+        $completedTrips = (clone $tripQuery)->where('status', 'completed')->count();
+        $ongoingTrips = (clone $tripQuery)->where('status', 'in_progress')->count();
+        $canceledTrips = (clone $tripQuery)->where('status', 'canceled')->count();
+        $totalCost = (clone $tripQuery)->sum('estimated_fare');
+
+        $trips = $tripQuery->with('driver')->latest()->paginate(10);
+
+        return view('corporates.dashboard', compact('totalTrips', 'completedTrips', 'ongoingTrips', 'canceledTrips', 'totalCost', 'trips' ));
+    }
 
     public function driverDashboard()
     {

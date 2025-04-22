@@ -45,16 +45,26 @@
 {{-- Admin --}}
 
 @if (auth()->check() && auth()->user()->role == '1')
-   
-    <a class="dropdown-item text-light" href="{{ url('users') }}">
-        <i class="bi bi-person me-2"></i>  <!-- Simple user icon -->
-         Manage Users
-    </a>
+       
+     <div class="dropdown">
+        <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Manage Users
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
+            <li>
+               <a class="dropdown-item text-dark" href="{{ route('corporates.index') }}">
+                    Manage corporate
+                </a>
 
-    <a class="dropdown-item text-lignt" href="{{ route('corporates.index') }}">
-        Manage corporate
-    </a>
-
+            </li>
+            <li>
+                <a class="dropdown-item text-dark" href="{{ url('users') }}">
+                    <i class="bi bi-person me-2"></i>  <!-- Simple user icon -->
+                    Manage Users
+                </a>
+            </li>
+        </ul>
+    </div>
 
    <div class="dropdown">
         <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -141,7 +151,7 @@
 
         {{-- customer --}}
 
-@else
+@elseif(auth()->check() && auth()->user()->role=='4')
     <a class="dropdown-item text-light fw-bold" href="{{ route('booking') }}">
         Booking
     </a>
@@ -149,7 +159,22 @@
     <a href="{{ route('bookings.my') }}" class="dropdown-item text-light fw-bold">
         📋 My Bookings
     </a>
-    
+  
+@else
+
+<li>
+    <a class="dropdown-item text-light" href="{{ url('users') }}">
+        <i class="bi bi-person me-2"></i>  <!-- Simple user icon -->
+        Manage Users
+    </a>
+</li>
+
+<li>
+    <a class="dropdown-item text-light fw-bold" href="{{ route('bookings.bulk') }}">
+        Bulk Booking
+    </a>
+</li>
+
 @endif
 
     <!-- Nav Item - Tables -->

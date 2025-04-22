@@ -9,6 +9,7 @@
             <thead class="table-dark">
                 <tr>
                     <th>#</th>
+                    <th>Corporate Id</th>
                     <th>Pickup Location</th>
                     <th>Dropoff Location</th>
                     <th>Scheduled Time</th>
@@ -21,6 +22,7 @@
                 @foreach ($bookings as $booking)
                 <tr>
                     <td>{{ $booking->id }}</td>
+                    <td>{{$booking->corporate_id}}</td>
                     <td>{{ $booking->pickup_location }}</td>
                     <td>{{ $booking->dropoff_location }}</td>
                     <td>{{ \Carbon\Carbon::parse($booking->scheduled_time)->format('M d, Y - h:i A') }}</td>

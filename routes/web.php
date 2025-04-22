@@ -42,13 +42,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [BookingController::class, 'customerDashboard'])->name('customer.dashboard');
     Route::get('/bookings', [BookingController::class, 'index'])->name('booking');
     Route::post('/bookings', [BookingController::class, 'create'])->name('bookings.create');
+        // bulk uploads
+    Route::get('/bookings/bulk', [BookingController::class, 'showBulkForm'])->name('bookings.bulk');
+    Route::get('/bookings/template', [BookingController::class, 'downloadTemplate'])->name('bookings.template');
+    Route::post('/bookings/bulk-upload', [BookingController::class, 'handleBulkUpload'])->name('bookings.bulkUpload');
+
     Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.details');
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
     Route::get('/report', [BookingController::class, 'report'])->name('customer-report');
+        
 });
 
+
 Route::resource('/users', DriverController::class);
+
 
 
 Route::middleware(['auth'])->group(function () {
@@ -57,7 +65,7 @@ Route::middleware(['auth'])->group(function () {
 
 
 Route::prefix('admin')->middleware('auth')->group(function () {
-    Route::get('dashboard', [TripController::class, 'adminDashboard'])->name('admin.dashboard');
+    Route::get('admin/dashboard', [TripController::class, 'adminDashboard'])->name('admin.dashboard');
     Route::get('admin/pending', [TripController::class, 'pendingTrips'])->name('admin.pending');
     Route::put('update/{id}', [TripController::class, 'updateBooking'])->name('admin.updateBooking');
     Route::get('admin/assignedTrips', [TripController::class, 'assignedTrips'])->name('assignedTrips');
@@ -65,6 +73,8 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('/admin/report/income', [TripController::class, 'incomereport'])->name('incomereport');
     Route::get('/admin/canceled-trips', [TripController::class, 'canceledTrips'])->name('admin.canceledTrips');
     Route::post('/admin/reassign-driver/{id}', [TripController::class, 'reassignDriver'])->name('admin.reassignDriver');
+
+    Route::get('dashboard', [TripController::class, 'corporateAdminDashboard'])->name('corporate.dashboard');
 
 });
 
@@ -82,6 +92,11 @@ Route::prefix('driver')->middleware('auth')->group(function () {
     Route::post('/trips/{id}/start', [TripController::class, 'startTrip'])->name('trips.start');
 
 });
+
+Route::get('/trips', [TripController::class, 'index']);
+Route::post('/trips/create', [TripController::class, 'store']);
+Route::get('/trips/{id}', [TripController::class, 'show']);
+
 
 Route::get('/forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
 Route::post('/forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');

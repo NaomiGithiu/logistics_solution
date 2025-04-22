@@ -10,12 +10,21 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;  // Import the Str facade for random string generation
 use App\Http\Requests\StoreUserRequest;
+use illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Corporate_Companies;
 
 class DriverController extends Controller
 {
     public function index()
     {
-        $users = User::with('roles')->get();
+        $userId = auth()->user()->corporate_id; 
+        $users = User::where('corporate_id', $userId)
+                            ->with('roles')
+                            ->get();  
+
+          
+        // $users = User::with('roles')->get();
         $role = Role::all();
         return view('users.index', compact('role'))->with('users', $users);
     }
@@ -28,24 +37,27 @@ class DriverController extends Controller
 
     public function store(StoreUserRequest $request)
     {
-        // Generate a random password (you can specify the length you prefer)
-        $randomPassword = Str::random(10);  
+        $randomPassword = Str::random(10);
 
-        // Create the user with the generated password
+        $corporate_id = auth()->user()->corporate_id;
+
         $user = User::create([
             'name' => $request->name,
             'phone_number' => $request->phone_number,
             'email' => $request->email,
             'role' => $request->role,
             'password' => bcrypt($randomPassword),
+            'corporate_id' => $corporate_id, // or corporate->corporate_id if that's the right one
             'must_change_password' => true,
         ]);
 
-        // Send the random password to the user's email
+        Log::info("password for {$user->email}: {$randomPassword}");
+
         Mail::to($user->email)->send(new SetPasswordMail($user, $randomPassword));
 
         return redirect('users');
     }
+
 
     public function show($id)
     {

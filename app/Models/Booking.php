@@ -22,6 +22,12 @@ class Booking extends Model
         'weight',
         'canceled_by',
         'cancel_reason',
+        'corporate_id',
+        'is_bulk',
+    ];
+
+    protected $casts = [
+        'scheduled_time' => 'datetime', // Converts it to a Carbon instance automatically
     ];
 
     public function customer()

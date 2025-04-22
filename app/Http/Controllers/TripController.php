@@ -80,35 +80,72 @@ class TripController extends Controller
     }
 
     
-    public function pendingTrips()
-    {
-        // Get the current time for comparison
-        $now = Carbon::now();
-        $corporate_id = auth()->user()->corporate_id;
+    // public function pendingTrips()
+    // {
+    //     // Get the current time for comparison
+    //     $now = Carbon::now();
+    //     $corporate_id = auth()->user()->corporate_id;
     
-        // Fetch all pending bookings with a scheduled_time that has passed (i.e., scheduled_time <= now)
-        $bookings = Booking::where('status', 'pending')
-            ->where('scheduled_time', '<=', $now)  // Only bookings whose scheduled_time has passed or is now
-            ->get();
+    //     // Fetch all pending bookings with a scheduled_time that has passed (i.e., scheduled_time <= now)
+    //     $bookings = Booking::where('corporate_id', $corporate_id)
+    //                         ->where('status', 'pending')
+    //                         ->where('scheduled_time', '<=', $now)  // Only bookings whose scheduled_time has passed or is now
+    //                         ->get();
     
-        // Fetch all drivers (role 'driver')
-        $drivers = User::where('role', '3')->get();  // Assuming drivers have role '3'
+    //     // Fetch all drivers (role 'driver')
+    //     $drivers = User::where('role', '3')->get();  // Assuming drivers have role '3'
     
-        // Return the view with the pending bookings and available drivers
-        return view('admin.pending', compact('bookings', 'drivers'));
-    }
+    //     // Return the view with the pending bookings and available drivers
+    //     return view('admin.pending', compact('bookings', 'drivers'));
+    // }
     
 
     // Admin assigns weight, driver, and calculates fare
+
+    
+    public function pendingTrips(Request $request)
+    {
+        $now = Carbon::now();
+        $corporate_id = auth()->user()->corporate_id;
+        
+        // Base query
+        $query = Booking::where('status', 'pending')
+                    ->where('scheduled_time', '<=', $now);
+        
+        // Apply corporate filter if exists
+        if ($corporate_id) {
+            $query->where(function($q) use ($corporate_id) {
+                $q->where('corporate_id', $corporate_id)
+                ->orWhereNull('corporate_id');
+            });
+        }
+        
+        // Check if bulk mode is requested
+        $isBulkMode = $request->has('bulk');
+        
+        if ($isBulkMode) {
+            $query->where('is_bulk', true);
+        }
+        
+        $bookings = $query->get();
+        $drivers = User::where('role', '3')->get();
+        
+        return view('admin.pending', [
+            'bookings' => $bookings,
+            'drivers' => $drivers,
+            'isBulkMode' => $isBulkMode
+        ]);
+    }
+    
     public function updateBooking(Request $request, $id)
     {
         // Validate the request
         $request->validate([
-            'weight' => 'required|numeric|min:1',  // Ensure weight is provided
-            'driver_id' => 'required|exists:users,id',  // Ensure driver ID exists
+            'weight' => 'required|numeric|min:1',  
+            'driver_id' => 'required|exists:users,id', 
         ]);
 
-        $booking = Booking::findOrFail($id);  // Find the booking by ID
+        $booking = Booking::findOrFail($id);  
 
         // Calculate transport fare based on weight ranges
         $weight = $request->input('weight');
@@ -124,6 +161,56 @@ class TripController extends Controller
 
         return redirect()->route('admin.pending')->with('success', 'Booking updated successfully!');
     }
+
+    public function bulkAssign(Request $request)
+    {
+        $bookingIds = explode(',', $request->booking_ids);
+        
+        // Validate input
+        $validated = $request->validate([
+            'driver_id' => 'required|exists:drivers,id',
+            'weight' => 'required|numeric|min:1',
+            'booking_ids' => 'required'
+        ]);
+        
+        // Update all selected bookings
+        Booking::whereIn('id', $bookingIds)
+                ->update([
+                    'driver_id' => $validated['driver_id'],
+                    'weight' => $validated['weight'],
+                    'status' => 'assigned' // or whatever status you use
+                ]);
+        
+        return back()->with('success', 'Drivers assigned successfully');
+    }
+
+    // public function bulkAssignDriver(Request $request)
+    // {
+    //     // Validate the request
+    //     $request->validate([
+    //         'driver_id' => 'required|exists:users,id',
+    //         'booking_ids' => 'required|array',
+    //         'booking_ids.*' => 'exists:bookings,id',
+    //     ]);
+
+    //     // Get pending bulk-uploaded bookings (optional filter)
+    //     $bookings = Booking::whereIn('id', $request->booking_ids)
+    //         ->where('status', 'pending')
+    //         ->where('is_bulk', true) // If you track bulk uploads
+    //         ->get();
+
+    //     // Assign driver and update status
+    //     $bookings->each(function ($booking) use ($request) {
+    //         $booking->update([
+    //             'driver_id' => $request->driver_id,
+    //             'status' => 'confirmed',
+    //             // Add fare calculation if needed
+    //             'estimated_fare' => $this->calculateFare($booking->weight ?? 0),
+    //         ]);
+    //     });
+
+    //     return redirect()->back()->with('success', 'Driver assigned to ' . $bookings->count() . ' bookings!');
+    // }
 
     // Helper function to calculate fare based on weight
     private function calculateFare($weight)

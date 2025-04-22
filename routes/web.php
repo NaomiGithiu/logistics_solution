@@ -47,6 +47,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/bookings/template', [BookingController::class, 'downloadTemplate'])->name('bookings.template');
     Route::post('/bookings/bulk-upload', [BookingController::class, 'handleBulkUpload'])->name('bookings.bulkUpload');
 
+     // checker
+     Route::get('/bookings/pending-approvals', [BookingController::class, 'pendingApprovals'])
+     ->name('bookings.pending-approvals');
+     
+     Route::get('/bookings/{id}/approve', [BookingController::class, 'showForApproval'])
+         ->name('bookings.show-for-approval');
+         
+     Route::post('/bookings/{id}/approve', [BookingController::class, 'approveTrip'])
+         ->name('bookings.approve');
+         
+     Route::post('/bookings/{id}/reject', [BookingController::class, 'rejectTrip'])
+         ->name('bookings.reject');
+
     Route::get('/bookings/{id}', [BookingController::class, 'show'])->name('bookings.details');
     Route::patch('/bookings/{id}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
@@ -66,8 +79,9 @@ Route::middleware(['auth'])->group(function () {
 
 Route::prefix('admin')->middleware('auth')->group(function () {
     Route::get('admin/dashboard', [TripController::class, 'adminDashboard'])->name('admin.dashboard');
-    Route::get('admin/pending', [TripController::class, 'pendingTrips'])->name('admin.pending');
-    Route::put('update/{id}', [TripController::class, 'updateBooking'])->name('admin.updateBooking');
+    Route::get('/pending', [TripController::class, 'pendingTrips'])->name('admin.pending');
+    Route::post('/bookings/{id}', [TripController::class, 'updateBooking'])->name('bookings.update');
+    Route::put('/bookings/bulk-assign', [BookingController::class, 'bulkAssign'])->name('bookings.bulk-assign');
     Route::get('admin/assignedTrips', [TripController::class, 'assignedTrips'])->name('assignedTrips');
     Route::get('/admin/reports/trip', [TripController::class, 'tripreport'])->name('tripreport');
     Route::get('/admin/report/income', [TripController::class, 'incomereport'])->name('incomereport');

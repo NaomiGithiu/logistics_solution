@@ -206,6 +206,68 @@ class BookingController extends Controller
         }
     }
 
+    public function pendingApprovals()
+    {
+
+        $pendingTrips = Booking::where('status', 'pending')
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+        return view('bookings.pending-approvals', compact('pendingTrips'));
+    }
+
+    public function showForApproval($id)
+    {
+        $trip = Booking::findOrFail($id);
+        return view('bookings.approve-trip', compact('trip'));
+    }
+
+    public function approveTrip(Request $request, $id)
+    {
+
+        $trip = Booking::findOrFail($id);
+        
+        $request->validate([
+            'comments' => 'nullable|string|max:255',
+        ]);
+
+        $trip->update([
+            'status' => 'confirmed',
+            'approved_by' => auth()->id(),
+            'approval_comments' => $request->comments,
+            'approved_at' => now(),
+        ]);
+
+        // Send notification to maker/customer
+        Mail::to($trip->customer->email)->send(new \App\Mail\TripApproved($trip));
+
+        return redirect()->route('bookings.pending-approvals')
+                        ->with('success', 'Trip approved successfully!');
+    }
+
+    public function rejectTrip(Request $request, $id)
+    {
+
+        $trip = Booking::findOrFail($id);
+        
+        $request->validate([
+            'rejection_reason' => 'required|string|max:255',
+        ]);
+
+        $trip->update([
+            'status' => 'rejected',
+            'rejected_by' => auth()->id(),
+            'rejection_reason' => $request->rejection_reason,
+            'rejected_at' => now(),
+        ]);
+
+        // Send notification to maker/customer
+        Mail::to($trip->customer->email)->send(new \App\Mail\TripRejected($trip));
+
+        return redirect()->route('bookings.pending-approvals')
+                        ->with('success', 'Trip rejected successfully!');
+    }
+
 
     
 }

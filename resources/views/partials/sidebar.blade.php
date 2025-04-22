@@ -169,11 +169,44 @@
     </a>
 </li>
 
-<li>
-    <a class="dropdown-item text-light fw-bold" href="{{ route('bookings.bulk') }}">
-        Bulk Booking
-    </a>
-</li>
+<div class="dropdown">
+    <button class="btn dropdown-toggle text-light " type="button" id="manageTripsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+        Manage Trips
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
+        <li>
+            <a class="dropdown-item text-dark" href="{{ route('admin.pending') }}">
+                Pending Trips
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item text-dark" href="{{ route('admin.canceledTrips') }}">
+                Canceled Trips
+            </a>
+        </li>
+        <li>
+            <a class="dropdown-item text-dark" href="{{ route('assignedTrips') }}">
+                🚖 Assigned Trips
+            </a>
+        </li>
+    </ul>
+
+    <li>
+        <a class="dropdown-item text-light fw-bold" href="{{ route('bookings.bulk') }}">
+            Bulk Booking
+        </a>
+    </li>
+
+    <ul class="dropdown-menu" aria-labelledby="manageTripsDropdown">
+        <li>
+            <a class="dropdown-item text-dark" href="{{ route('bookings.pending-approvals') }}">
+                Pending Trips
+            </a>
+        </li>
+       
+    </ul>
+</div>
+
 
 @endif
 
